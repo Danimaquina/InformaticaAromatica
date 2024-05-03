@@ -21,10 +21,11 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
-public class Test {
-	private static final String IMAGE1 = "C:/Users/Dani/Desktop/a.jpg";
-	private static final String IMAGE2 = "C:/Users/Dani/Desktop/b.png";
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
 
+public class Test {
 	private static final String PROJECT = "all";
 	private static final String URL = "https://my-api.plantnet.org/v2/identify/" + PROJECT + "?api-key=2b10oHEhibsbL9uFqTzhqVFDGe";
 
@@ -90,7 +91,13 @@ public class Test {
         	{
         		response = client.execute(request);
         		String jsonString = EntityUtils.toString(response.getEntity());
-        		System.out.println(jsonString);
+        		
+        		// Creem un objecte Gson configurat per generar una representació
+        		 // JSON en mode "pretty printing" (bonic, ben tabulat).
+        		 Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        		 // Mostrem la conversió a String del JSON que ens ha retornat el
+        		 // servidor, en mode pretty printing.
+        		 System.out.println(gson.toJson(JsonParser.parseString(jsonString)));
         	}
         	catch (IOException e)
         	{
