@@ -98,6 +98,23 @@ public class Test {
         		 // Mostrem la conversió a String del JSON que ens ha retornat el
         		 // servidor, en mode pretty printing.
         		 System.out.println(gson.toJson(JsonParser.parseString(jsonString)));
+        		 
+        		// Fem la desserialització de la resposta obtinguda del servidor
+        		 // (conversió de JSON a objecte tipus Resposta de Java).
+        		 RespostaPlantNet r =
+        		 new Gson().fromJson(jsonString, RespostaPlantNet.class);
+        		 // Mostrem el valor de l'atribut bestMatch per consola.
+        		 
+        		 System.out.print("\n\nGet Language de la resposta: ");
+        		 System.out.println(r.getLanguage());
+        		 System.out.print("\n\nBest Match de la resposta: ");
+        		 System.out.println(r.getBestMatch());
+        		 System.out.print("\n\nPredered Referential de la resposta: ");
+        		 System.out.println(r.getPreferedReferential());
+        		 System.out.print("\n\nGet Version de la resposta: ");
+        		 System.out.println(r.getVersion());
+        		 System.out.print("\n\nRemaining Identification de la resposta: ");
+        		 System.out.println(r.getRemainingIdentificationRequests());
         	}
         	catch (IOException e)
         	{
