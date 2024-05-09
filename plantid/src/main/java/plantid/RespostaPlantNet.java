@@ -1,5 +1,7 @@
 package plantid;
 
+import java.util.List;
+
 public class RespostaPlantNet 
 {
 	private String language;
@@ -7,14 +9,16 @@ public class RespostaPlantNet
 	private String preferedReferential;
 	private String version;
 	private int remainingIdentificationRequests;
-	
+
+	private List<Resultat> results;
+
 	public RespostaPlantNet()
 	{
-		
+
 	}
-	
-	
-	
+
+
+
 	public String getLanguage() 
 	{
 		return language;
@@ -75,9 +79,18 @@ public class RespostaPlantNet
 	{
 		return bestMatch;
 	}
-	
+
 	public void setBestMatch(String bestMatch)
 	{
 		this.bestMatch = bestMatch;
+	}
+
+	public List<Resultat> getResults() 
+	{
+		return results;
+	}
+	public void setResults(List<Resultat> results) 
+	{
+		this.results = results;
 	}
 }

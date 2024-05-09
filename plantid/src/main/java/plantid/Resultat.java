@@ -1,9 +1,13 @@
 package plantid;
 
+import java.util.List;
+
 public class Resultat 
 {
 	private Double score;
 	private Especie species;
+	
+	
 	public Resultat() 
 	{
 
@@ -28,5 +32,7 @@ public class Resultat
 	{
 		this.species = species;
 	}
+
+	
 }
 

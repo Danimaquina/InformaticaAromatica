@@ -105,16 +105,41 @@ public class Test {
         		 new Gson().fromJson(jsonString, RespostaPlantNet.class);
         		 // Mostrem el valor de l'atribut bestMatch per consola.
         		 
-        		 System.out.print("\n\nGet Language de la resposta: ");
+        		 System.out.print("\n\n Language de la resposta: ");
         		 System.out.println(r.getLanguage());
-        		 System.out.print("\n\nBest Match de la resposta: ");
+        		 System.out.print(" Best Match de la resposta: ");
         		 System.out.println(r.getBestMatch());
-        		 System.out.print("\n\nPredered Referential de la resposta: ");
+        		 System.out.print(" Predered Referential de la resposta: ");
         		 System.out.println(r.getPreferedReferential());
-        		 System.out.print("\n\nGet Version de la resposta: ");
+        		 System.out.print(" Version de la resposta: ");
         		 System.out.println(r.getVersion());
-        		 System.out.print("\n\nRemaining Identification de la resposta: ");
+        		 System.out.print(" Remaining Identification de la resposta: ");
         		 System.out.println(r.getRemainingIdentificationRequests());
+        		 System.out.println("");
+        		 
+        		 // Mostrem l'score en tant per cent i el nom científic de tots els
+        		 // resultats que conté la resposta que hem rebut.
+        		 for (Resultat res: r.getResults()) 
+        		 {
+        			 System.out.printf("\n %s (%.2f%%)%n",
+        					 res.getSpecies().getScientificName(),
+        					 res.getScore() * 100);
+        			 
+        			 if (res.getSpecies().getCommonNames() == null || res.getSpecies().getCommonNames().isEmpty())
+        				 continue;
+        			 
+        			 System.out.println(" Common names: ");
+        			 int counter = 1;
+        			 
+        			 for (String s : res.getSpecies().getCommonNames())
+        			 {
+        				 System.out.printf(" %d: %s\n", counter, s);
+        				 counter++;
+        			 }
+        		 }
+        		 
+        		 
+
         	}
         	catch (IOException e)
         	{
