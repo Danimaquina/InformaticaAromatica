@@ -118,35 +118,45 @@ public class Test {
         		 System.out.println(r.getRemainingIdentificationRequests());
         		 System.out.println("");
         		 
-        		 // Mostrem l'score en tant per cent i el nom científic de tots els
-        		 // resultats que conté la resposta que hem rebut.
-        		 for (Resultat res: r.getResults()) 
+        		 if (!jsonString.contains("\"error\":\"Bad Request\","))
         		 {
-        			 System.out.printf("\n %s (%.2f%%)%n",
-        					 res.getSpecies().getScientificName(),
-        					 res.getScore() * 100);
-        			 
-        			 if (res.getSpecies().getCommonNames() == null || res.getSpecies().getCommonNames().isEmpty())
-        				 continue;
-        			 
-        			 System.out.println(" Common names: ");
-        			 int counter = 1;
-        			 
-        			 for (String s : res.getSpecies().getCommonNames())
-        			 {
-        				 System.out.printf(" %d: %s\n", counter, s);
-        				 counter++;
-        			 }
-        			 
-        			 for (Images i : res.getImages())
-        			 {
-        				 System.out.printf(" Organ: %s\n", i.getOrgan());
-        				 System.out.printf(" Citation: %s\n", i.getCitation());
-        				 System.out.println(" Urls: ");
-        				 System.out.printf(" o: %s\n", i.getUrl().get("o"));
-        				 System.out.printf(" m: %s\n", i.getUrl().get("m"));
-        				 System.out.printf(" s: %s\n\n", i.getUrl().get("s"));
-        			 }
+             		 // Mostrem l'score en tant per cent i el nom científic de tots els
+            		 // resultats que conté la resposta que hem rebut.
+            		 for (Resultat res: r.getResults()) 
+            		 {
+            			 System.out.printf("\n %s (%.2f%%)%n",
+            					 res.getSpecies().getScientificName(),
+            					 res.getScore() * 100);
+            			 
+            			 if (res.getSpecies().getCommonNames() != null && !res.getSpecies().getCommonNames().isEmpty())
+            			 {
+                			 System.out.println(" Common names: ");
+                			 int counter = 1;
+                			 
+                			 for (String s : res.getSpecies().getCommonNames())
+                			 {
+                				 System.out.printf(" %d: %s\n", counter, s);
+                				 counter++;
+                			 } 
+            			 }
+            			 
+            			 if (res.getImages() != null && !res.getImages().isEmpty())
+            			 {
+                			 for (Images i : res.getImages())
+                			 {
+                				 System.out.printf(" Organ: %s\n", i.getOrgan());
+                				 System.out.printf(" Citation: %s\n", i.getCitation());
+                				 System.out.println(" Urls: ");
+                				 System.out.printf(" o: %s\n", i.getUrl().get("o"));
+                				 System.out.printf(" m: %s\n", i.getUrl().get("m"));
+                				 System.out.printf(" s: %s\n\n", i.getUrl().get("s"));
+                			 }
+            			 }
+            		 }
+        		 }
+        		 else
+        		 {
+        			 System.out.println("Error no se ha podido obtener los resultados de la API");
         		 }
         	}
         	catch (IOException e)
