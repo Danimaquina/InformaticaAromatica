@@ -3,6 +3,7 @@ package plantid;
 import java.io.File;
 import java.nio.file.Files;
 import java.text.NumberFormat;
+import java.util.Map;
 import java.awt.Image;
 import java.io.IOException;
 
@@ -27,7 +28,7 @@ import com.google.gson.JsonParser;
 
 public class Test {
 	private static final String PROJECT = "all";
-	private static final String URL = "https://my-api.plantnet.org/v2/identify/" + PROJECT + "?api-key=2b10oHEhibsbL9uFqTzhqVFDGe";
+	private static final String URL = "https://my-api.plantnet.org/v2/identify/" + PROJECT + "?lang=es&include-related-images=true&api-key=2b10oHEhibsbL9uFqTzhqVFDGe";
 
 	public static void main(String[] args) 
 	{
@@ -136,10 +137,17 @@ public class Test {
         				 System.out.printf(" %d: %s\n", counter, s);
         				 counter++;
         			 }
+        			 
+        			 for (Images i : res.getImages())
+        			 {
+        				 System.out.printf(" Organ: %s\n", i.getOrgan());
+        				 System.out.printf(" Citation: %s\n", i.getCitation());
+        				 System.out.println(" Urls: ");
+        				 System.out.printf(" o: %s\n", i.getUrl().get("o"));
+        				 System.out.printf(" m: %s\n", i.getUrl().get("m"));
+        				 System.out.printf(" s: %s\n\n", i.getUrl().get("s"));
+        			 }
         		 }
-        		 
-        		 
-
         	}
         	catch (IOException e)
         	{

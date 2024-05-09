@@ -6,7 +6,7 @@ public class Resultat
 {
 	private Double score;
 	private Especie species;
-	
+	private List<Images> images;
 	
 	public Resultat() 
 	{
@@ -33,6 +33,14 @@ public class Resultat
 		this.species = species;
 	}
 
-	
+	public List<Images> getImages() 
+	{
+		return images;
+	}
+
+	public void setImages(List<Images> images) 
+	{
+		this.images = images;
+	}
 }
 
