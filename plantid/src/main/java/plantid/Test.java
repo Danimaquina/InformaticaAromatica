@@ -1,6 +1,9 @@
 package plantid;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -8,6 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.NumberFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.awt.Image;
 import java.io.IOException;
@@ -35,6 +39,41 @@ import com.google.gson.JsonParser;
 public class Test {
 	private static final String PROJECT = "all";
 	private static final String URL = "https://my-api.plantnet.org/v2/identify/" + PROJECT + "?lang=es&include-related-images=true&api-key=2b10oHEhibsbL9uFqTzhqVFDGe";
+	
+	private static void saveContentHtml(String content)
+	{
+        try
+        {
+        	FileWriter resultWrite = new FileWriter(new File("id_card/result.html"));
+        	resultWrite.write(content);
+        	resultWrite.close();
+        }
+        catch (IOException e)
+        {
+        	System.out.println("Error al escribir el header en result.html");
+        	System.exit(-1);
+        }
+	}
+	
+    private static String readContentHtml(String file) 
+    {
+        StringBuilder content = new StringBuilder();
+        try 
+        {
+            BufferedReader reader = new BufferedReader(new FileReader(new File(file)));
+            String linea;
+            while ((linea = reader.readLine()) != null)
+            {
+            	content.append(linea).append("\n");
+            }
+            reader.close();
+        } 
+        catch (IOException e) 
+        {
+            System.out.println("Error al leer el template del header html");
+        }
+        return content.toString();
+    }
 
 	public static void main(String[] args) 
 	{
@@ -50,7 +89,8 @@ public class Test {
 		selectorArxius.setCurrentDirectory(new File(currentDirectory));
 
 		resultat = selectorArxius.showOpenDialog(null);
-		if (resultat == JFileChooser.APPROVE_OPTION) {
+		if (resultat == JFileChooser.APPROVE_OPTION) 
+		{
 			// Creem l'objecte entity builder que ens permet gestionar la
 			// creació del contingut de la petició d'identificació.
 			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -126,15 +166,16 @@ public class Test {
 				
 				// Comprobamos si el directorio donde vamos a guardar las imagenes existe, en caso de que no, lo creamos
 				Path idCardPath = Paths.get("id_card");
-		        if (!Files.exists(idCardPath, LinkOption.NOFOLLOW_LINKS)) 
+		        if (!Files.exists(idCardPath, LinkOption.NOFOLLOW_LINKS))
 		        {
-		            try 
+		            try
 		            {
 		                Files.createDirectory(idCardPath);
 		            } 
 		            catch (IOException e) 
 		            {
 		                System.out.println("No se ha podido crear el directorio: " + idCardPath);
+		                System.exit(-1);
 		            }
 		        }
 		        
@@ -148,18 +189,55 @@ public class Test {
 		            catch (IOException e) 
 		            {
 		                System.out.println("No se ha podido crear el directorio: " + imagesPath);
+		                System.exit(-1);
 		            }
 		        }
+		        
+		        File resultFile = new File("id_card/result.html");
+		        if (!resultFile.exists())
+		        {
+		        	try 
+		        	{
+		        		resultFile.createNewFile();
+		        	}
+		        	catch (IOException e)
+		        	{
+		        		System.out.println("Error al crear result.html");
+		        		System.exit(-1);
+		        	}
+		        }
+		        else
+		        {
+			        resultFile.delete();
+		        	try
+		        	{
+		        		resultFile.createNewFile();
+		        	}
+		        	catch (IOException e)
+		        	{
+		        		System.out.println("Error al crear result.html");
+		        		System.exit(-1);
+		        	}
+		        }
+		        
+		        String resultContent = readContentHtml("templates/header.html");
 				
 				if (!jsonString.contains("\"error\":\"Bad Request\","))
-				{
+				{	
 					// Variable para contar las imagenes del resultado
 					int countResImg = 1;
 					
 					// Mostrem l'score en tant per cent i el nom científic de tots els
 					// resultats que conté la resposta que hem rebut.
 					for (Resultat res: r.getResults()) 
-					{
+					{	
+						if (!(res.getScore() >= 5.0))
+							continue;
+						
+						resultContent += readContentHtml("templates/result_template.html");
+						resultContent = resultContent.replace("%%scientificName%%", res.getSpecies().getScientificName());
+						resultContent = resultContent.replace("%%score%%", Double.toString(res.getScore()));
+						
 						System.out.printf("\n %s (%.2f%%)%n",
 								res.getSpecies().getScientificName(),
 								res.getScore() * 100);
@@ -171,26 +249,37 @@ public class Test {
 
 							for (String s : res.getSpecies().getCommonNames())
 							{
+								resultContent = resultContent.replace("%%commonNames%%", s);
 								System.out.printf(" %d: %s\n", counter, s);
 								counter++;
 							} 
 						}
+						else
+						{
+							resultContent = resultContent.replace("%%commonNames%%", "");
+						}
+						
+						saveContentHtml(resultContent);
 
 						if (res.getImages() != null && !res.getImages().isEmpty())
-						{
+						{							
 							Map<Integer, String> imgStrs = new HashMap<>();
 							imgStrs.put(1, "o");
 							imgStrs.put(2, "m");
 							imgStrs.put(3, "s");
 					        
 							for (Images i : res.getImages())
-							{
+							{								
 								System.out.printf(" Organ: %s\n", i.getOrgan());
 								System.out.printf(" Citation: %s\n", i.getCitation());
 								System.out.println(" Urls: ");
 								System.out.printf(" o: %s\n", i.getUrl().get("o"));
 								System.out.printf(" m: %s\n", i.getUrl().get("m"));
 								System.out.printf(" s: %s\n", i.getUrl().get("s"));
+								
+								resultContent = resultContent.replace("%%images%%", readContentHtml("templates/image_template.html"));
+								resultContent = resultContent.replace("%%organ%%", i.getOrgan());
+								resultContent = resultContent.replace("%%citation%%", i.getCitation());
 
 								for (int countImg = 1; countImg <= 3; countImg++)
 								{
@@ -210,19 +299,26 @@ public class Test {
 								    }
 								}
 
+								resultContent = resultContent.replace("%%image%%", countResImg + "." + "1" + ".jpg");
 								countResImg++;
 							}
+						}
+						else
+						{
+							resultContent = resultContent.replace("%%images%%", "");
 						}
 					}
 				}
 				else
 				{
 					System.out.println("Error no se ha podido obtener los resultados de la API");
+					System.exit(1);
 				}
 			}
 			catch (IOException e)
 			{
 				System.out.println("Error al mostrar la informacion recibida por la API.");
+				System.exit(-1);
 			}
 		}
 	}

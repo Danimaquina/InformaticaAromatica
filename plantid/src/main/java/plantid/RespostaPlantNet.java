@@ -17,8 +17,6 @@ public class RespostaPlantNet
 
 	}
 
-
-
 	public String getLanguage() 
 	{
 		return language;
