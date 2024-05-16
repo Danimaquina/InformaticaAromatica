@@ -231,7 +231,7 @@ public class Test {
 					// resultats que conté la resposta que hem rebut.
 					for (Resultat res: r.getResults()) 
 					{	
-						if (!(res.getScore() >= 5.0))
+						if (!(res.getScore() >= 0.5))
 							continue;
 						
 						resultContent += readContentHtml("templates/result_template.html");
@@ -258,8 +258,6 @@ public class Test {
 						{
 							resultContent = resultContent.replace("%%commonNames%%", "");
 						}
-						
-						saveContentHtml(resultContent);
 
 						if (res.getImages() != null && !res.getImages().isEmpty())
 						{							
@@ -308,6 +306,8 @@ public class Test {
 							resultContent = resultContent.replace("%%images%%", "");
 						}
 					}
+					
+					saveContentHtml(resultContent);
 				}
 				else
 				{
