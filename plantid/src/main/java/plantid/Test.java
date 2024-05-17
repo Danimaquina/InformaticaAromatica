@@ -231,12 +231,12 @@ public class Test {
 					// resultats que conté la resposta que hem rebut.
 					for (Resultat res: r.getResults()) 
 					{	
-						if (!(res.getScore() >= 0.5))
+						if (!(res.getScore() >= 0.05))
 							continue;
 						
 						resultContent += readContentHtml("templates/result_template.html");
 						resultContent = resultContent.replace("%%scientificName%%", res.getSpecies().getScientificName());
-						resultContent = resultContent.replace("%%score%%", Double.toString(res.getScore()));
+						resultContent = resultContent.replace("%%score%%", String.format("%.2f%%", res.getScore() * 100));
 						
 						System.out.printf("\n %s (%.2f%%)%n",
 								res.getSpecies().getScientificName(),
@@ -260,12 +260,9 @@ public class Test {
 						}
 
 						if (res.getImages() != null && !res.getImages().isEmpty())
-						{							
-							Map<Integer, String> imgStrs = new HashMap<>();
-							imgStrs.put(1, "o");
-							imgStrs.put(2, "m");
-							imgStrs.put(3, "s");
-					        
+						{
+							StringBuilder imagesHtml = new StringBuilder();
+							int countImg = 1;
 							for (Images i : res.getImages())
 							{								
 								System.out.printf(" Organ: %s\n", i.getOrgan());
@@ -274,37 +271,33 @@ public class Test {
 								System.out.printf(" o: %s\n", i.getUrl().get("o"));
 								System.out.printf(" m: %s\n", i.getUrl().get("m"));
 								System.out.printf(" s: %s\n", i.getUrl().get("s"));
+
+							    URL urlImatge = new URL(i.getUrl().get("m"));
+							    String fileName = countResImg + "." + countImg + ".jpg";
+
+							    Files.copy(urlImatge.openStream(),
+							            Paths.get("./id_card/images/" + fileName),
+							            StandardCopyOption.REPLACE_EXISTING);
+
+							    System.out.println(" Descargada imagen: " + countResImg + "." + countImg + ".jpg");
+							    
+							    String imageTemplate = readContentHtml("templates/image_template.html");
+								imageTemplate = imageTemplate.replace("%%organ%%", i.getOrgan());
+								imageTemplate = imageTemplate.replace("%%citation%%", i.getCitation());
+								imageTemplate = imageTemplate.replace("%%image%%", fileName);
 								
-								resultContent = resultContent.replace("%%images%%", readContentHtml("templates/image_template.html"));
-								resultContent = resultContent.replace("%%organ%%", i.getOrgan());
-								resultContent = resultContent.replace("%%citation%%", i.getCitation());
-
-								for (int countImg = 1; countImg <= 3; countImg++)
-								{
-								    String getImgStr = imgStrs.get(countImg);
-								    URL urlImatge = new URL(i.getUrl().get(getImgStr));
-								    String fileName = countResImg + "." + countImg + ".jpg";
-
-								    Files.copy(urlImatge.openStream(),
-								            Paths.get("./id_card/images/" + fileName),
-								            StandardCopyOption.REPLACE_EXISTING);
-
-								    System.out.println(" Descargada imagen: " + getImgStr + " - " + countResImg + "." + countImg + ".jpg"); 
-								    
-								    if (countImg == 3)
-								    {
-								    	System.out.println("");
-								    }
-								}
-
-								resultContent = resultContent.replace("%%image%%", countResImg + "." + "1" + ".jpg");
-								countResImg++;
+								imagesHtml.append(imageTemplate);
+								
+								countImg++;
 							}
+							
+							resultContent = resultContent.replace("%%images%%", imagesHtml.toString());
 						}
 						else
 						{
 							resultContent = resultContent.replace("%%images%%", "");
 						}
+						countResImg++;
 					}
 					
 					saveContentHtml(resultContent);
