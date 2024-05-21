@@ -9,6 +9,9 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -126,6 +129,23 @@ public class Test {
 				builder.addPart("images", new FileBody(f))
 				.addTextBody("organs", resposta);
 			}
+			
+			Connection conn;
+			try 
+			{
+				// Ens connectem a una base de dades Oracle, que es troba en un servidor
+				// l’adreça del qual és 192.168.1.36 (podríem especificar nom de host) i que
+				// està configurat per escoltar al port 1521 (el port estàndard d’Oracle). Ens
+				// connectem a la base de dades anomenada "xe", validant-nos amb l’usuari "m3"
+				// i contrasenya "m3".
+				conn = DriverManager.getConnection(
+				"jdbc:oracle:thin:@//192.168.1.36:1521/xe", "m3", "m3");
+			}
+			catch (SQLException sqle) 
+			{
+				System.out.println("Error establint la connexió: " + sqle.getMessage());
+			}
+			
 			// Donem l'ordre de construir el contingut (entity) de la petició.
 			HttpEntity entity = builder.build();
 			// Continuem amb la petició com a l'exemple de Pl@ntNet.
@@ -133,7 +153,6 @@ public class Test {
 			request.setEntity(entity);
 			HttpClient client = HttpClientBuilder.create().build();
 			HttpResponse response;
-
 			try
 			{
 				response = client.execute(request);
@@ -252,7 +271,7 @@ public class Test {
 								resultContent = resultContent.replace("%%commonNames%%", s);
 								System.out.printf(" %d: %s\n", counter, s);
 								counter++;
-							} 
+							}
 						}
 						else
 						{
@@ -299,7 +318,6 @@ public class Test {
 						}
 						countResImg++;
 					}
-					
 					saveContentHtml(resultContent);
 				}
 				else
