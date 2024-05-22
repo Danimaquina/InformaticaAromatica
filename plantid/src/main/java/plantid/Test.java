@@ -10,8 +10,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.PreparedStatement;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +22,7 @@ import java.util.Map;
 import java.awt.Image;
 import java.io.IOException;
 import java.net.URL;
+
 
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
@@ -42,41 +46,41 @@ import com.google.gson.JsonParser;
 public class Test {
 	private static final String PROJECT = "all";
 	private static final String URL = "https://my-api.plantnet.org/v2/identify/" + PROJECT + "?lang=es&include-related-images=true&api-key=2b10oHEhibsbL9uFqTzhqVFDGe";
-	
+
 	private static void saveContentHtml(String content)
 	{
-        try
-        {
-        	FileWriter resultWrite = new FileWriter(new File("id_card/result.html"));
-        	resultWrite.write(content);
-        	resultWrite.close();
-        }
-        catch (IOException e)
-        {
-        	System.out.println("Error al escribir el header en result.html");
-        	System.exit(-1);
-        }
+		try
+		{
+			FileWriter resultWrite = new FileWriter(new File("id_card/result.html"));
+			resultWrite.write(content);
+			resultWrite.close();
+		}
+		catch (IOException e)
+		{
+			System.out.println("Error al escribir el header en result.html");
+			System.exit(-1);
+		}
 	}
-	
-    private static String readContentHtml(String file) 
-    {
-        StringBuilder content = new StringBuilder();
-        try 
-        {
-            BufferedReader reader = new BufferedReader(new FileReader(new File(file)));
-            String linea;
-            while ((linea = reader.readLine()) != null)
-            {
-            	content.append(linea).append("\n");
-            }
-            reader.close();
-        } 
-        catch (IOException e) 
-        {
-            System.out.println("Error al leer el template del header html");
-        }
-        return content.toString();
-    }
+
+	private static String readContentHtml(String file) 
+	{
+		StringBuilder content = new StringBuilder();
+		try 
+		{
+			BufferedReader reader = new BufferedReader(new FileReader(new File(file)));
+			String linea;
+			while ((linea = reader.readLine()) != null)
+			{
+				content.append(linea).append("\n");
+			}
+			reader.close();
+		} 
+		catch (IOException e) 
+		{
+			System.out.println("Error al leer el template del header html");
+		}
+		return content.toString();
+	}
 
 	public static void main(String[] args) 
 	{
@@ -129,23 +133,13 @@ public class Test {
 				builder.addPart("images", new FileBody(f))
 				.addTextBody("organs", resposta);
 			}
-			
-			Connection conn;
-			try 
-			{
-				// Ens connectem a una base de dades Oracle, que es troba en un servidor
-				// l’adreça del qual és 192.168.1.36 (podríem especificar nom de host) i que
-				// està configurat per escoltar al port 1521 (el port estàndard d’Oracle). Ens
-				// connectem a la base de dades anomenada "xe", validant-nos amb l’usuari "m3"
-				// i contrasenya "m3".
-				conn = DriverManager.getConnection(
-				"jdbc:oracle:thin:@//192.168.1.36:1521/xe", "m3", "m3");
-			}
-			catch (SQLException sqle) 
-			{
-				System.out.println("Error establint la connexió: " + sqle.getMessage());
-			}
-			
+
+
+
+
+
+
+
 			// Donem l'ordre de construir el contingut (entity) de la petició.
 			HttpEntity entity = builder.build();
 			// Continuem amb la petició com a l'exemple de Pl@ntNet.
@@ -167,8 +161,7 @@ public class Test {
 
 				// Fem la desserialització de la resposta obtinguda del servidor
 				// (conversió de JSON a objecte tipus Resposta de Java).
-				RespostaPlantNet r =
-						new Gson().fromJson(jsonString, RespostaPlantNet.class);
+				RespostaPlantNet r = new Gson().fromJson(jsonString, RespostaPlantNet.class);
 				// Mostrem el valor de l'atribut bestMatch per consola.
 
 				System.out.print("\n\n Language de la resposta: ");
@@ -182,81 +175,81 @@ public class Test {
 				System.out.print(" Remaining Identification de la resposta: ");
 				System.out.println(r.getRemainingIdentificationRequests());
 				System.out.println("");
-				
+
 				// Comprobamos si el directorio donde vamos a guardar las imagenes existe, en caso de que no, lo creamos
 				Path idCardPath = Paths.get("id_card");
-		        if (!Files.exists(idCardPath, LinkOption.NOFOLLOW_LINKS))
-		        {
-		            try
-		            {
-		                Files.createDirectory(idCardPath);
-		            } 
-		            catch (IOException e) 
-		            {
-		                System.out.println("No se ha podido crear el directorio: " + idCardPath);
-		                System.exit(-1);
-		            }
-		        }
-		        
-		        Path imagesPath = Paths.get("id_card/images");
-		        if (!Files.exists(imagesPath, LinkOption.NOFOLLOW_LINKS))
-		        {
-		            try 
-		            {
-		                Files.createDirectory(imagesPath);
-		            } 
-		            catch (IOException e) 
-		            {
-		                System.out.println("No se ha podido crear el directorio: " + imagesPath);
-		                System.exit(-1);
-		            }
-		        }
-		        
-		        File resultFile = new File("id_card/result.html");
-		        if (!resultFile.exists())
-		        {
-		        	try 
-		        	{
-		        		resultFile.createNewFile();
-		        	}
-		        	catch (IOException e)
-		        	{
-		        		System.out.println("Error al crear result.html");
-		        		System.exit(-1);
-		        	}
-		        }
-		        else
-		        {
-			        resultFile.delete();
-		        	try
-		        	{
-		        		resultFile.createNewFile();
-		        	}
-		        	catch (IOException e)
-		        	{
-		        		System.out.println("Error al crear result.html");
-		        		System.exit(-1);
-		        	}
-		        }
-		        
-		        String resultContent = readContentHtml("templates/header.html");
-				
+				if (!Files.exists(idCardPath, LinkOption.NOFOLLOW_LINKS))
+				{
+					try
+					{
+						Files.createDirectory(idCardPath);
+					} 
+					catch (IOException e) 
+					{
+						System.out.println("No se ha podido crear el directorio: " + idCardPath);
+						System.exit(-1);
+					}
+				}
+
+				Path imagesPath = Paths.get("id_card/images");
+				if (!Files.exists(imagesPath, LinkOption.NOFOLLOW_LINKS))
+				{
+					try 
+					{
+						Files.createDirectory(imagesPath);
+					} 
+					catch (IOException e) 
+					{
+						System.out.println("No se ha podido crear el directorio: " + imagesPath);
+						System.exit(-1);
+					}
+				}
+
+				File resultFile = new File("id_card/result.html");
+				if (!resultFile.exists())
+				{
+					try 
+					{
+						resultFile.createNewFile();
+					}
+					catch (IOException e)
+					{
+						System.out.println("Error al crear result.html");
+						System.exit(-1);
+					}
+				}
+				else
+				{
+					resultFile.delete();
+					try
+					{
+						resultFile.createNewFile();
+					}
+					catch (IOException e)
+					{
+						System.out.println("Error al crear result.html");
+						System.exit(-1);
+					}
+				}
+
+				String resultContent = readContentHtml("templates/header.html");
+
 				if (!jsonString.contains("\"error\":\"Bad Request\","))
 				{	
 					// Variable para contar las imagenes del resultado
 					int countResImg = 1;
-					
+
 					// Mostrem l'score en tant per cent i el nom científic de tots els
 					// resultats que conté la resposta que hem rebut.
 					for (Resultat res: r.getResults()) 
 					{	
 						if (!(res.getScore() >= 0.05))
 							continue;
-						
+
 						resultContent += readContentHtml("templates/result_template.html");
 						resultContent = resultContent.replace("%%scientificName%%", res.getSpecies().getScientificName());
 						resultContent = resultContent.replace("%%score%%", String.format("%.2f%%", res.getScore() * 100));
-						
+
 						System.out.printf("\n %s (%.2f%%)%n",
 								res.getSpecies().getScientificName(),
 								res.getScore() * 100);
@@ -291,25 +284,25 @@ public class Test {
 								System.out.printf(" m: %s\n", i.getUrl().get("m"));
 								System.out.printf(" s: %s\n", i.getUrl().get("s"));
 
-							    URL urlImatge = new URL(i.getUrl().get("m"));
-							    String fileName = countResImg + "." + countImg + ".jpg";
+								URL urlImatge = new URL(i.getUrl().get("m"));
+								String fileName = countResImg + "." + countImg + ".jpg";
 
-							    Files.copy(urlImatge.openStream(),
-							            Paths.get("./id_card/images/" + fileName),
-							            StandardCopyOption.REPLACE_EXISTING);
+								Files.copy(urlImatge.openStream(),
+										Paths.get("./id_card/images/" + fileName),
+										StandardCopyOption.REPLACE_EXISTING);
 
-							    System.out.println(" Descargada imagen: " + countResImg + "." + countImg + ".jpg");
-							    
-							    String imageTemplate = readContentHtml("templates/image_template.html");
+								System.out.println(" Descargada imagen: " + countResImg + "." + countImg + ".jpg");
+
+								String imageTemplate = readContentHtml("templates/image_template.html");
 								imageTemplate = imageTemplate.replace("%%organ%%", i.getOrgan());
 								imageTemplate = imageTemplate.replace("%%citation%%", i.getCitation());
 								imageTemplate = imageTemplate.replace("%%image%%", fileName);
-								
+
 								imagesHtml.append(imageTemplate);
-								
+
 								countImg++;
 							}
-							
+
 							resultContent = resultContent.replace("%%images%%", imagesHtml.toString());
 						}
 						else
@@ -319,6 +312,43 @@ public class Test {
 						countResImg++;
 					}
 					saveContentHtml(resultContent);
+
+					Connection conn = null;
+					PreparedStatement ps = null;
+					try {
+						// Ens connectem a una base de dades postgresql, que es troba en un servidor
+						// l’adreça del qual és localhost (podríem especificar nom de host) i que
+						// està configurat per escoltar al port 5432. 
+						// Ens connectem a la base de dades anomenada "AromatiInfo", validant-nos amb l’usuari "m3"
+						// i contrasenya "m3".
+						conn = DriverManager.getConnection(
+								"jdbc:postgresql://localhost:5432/AromatiInfo", "m3", "m3");
+
+						// PreparedStatement
+						String sql = "INSERT INTO registre_consultas (data_hora, especies) " +
+								"VALUES (?, ?)";
+
+						ps = conn.prepareStatement(sql);
+						
+						//Para Guardar el tiempo
+						ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+						
+						//Para comprovar que no de null
+						if (r.getBestMatch() != null) {
+							ps.setString(2, r.getBestMatch());
+
+						}else {
+							ps.setString(2, "Identificació Fallida");
+
+						}
+						ps.execute();
+						ps.close();
+
+
+					} catch (SQLException sqle) {
+						System.out.println("Error establint la connexió: " + sqle.getMessage());
+						sqle.printStackTrace();
+					}
 				}
 				else
 				{
