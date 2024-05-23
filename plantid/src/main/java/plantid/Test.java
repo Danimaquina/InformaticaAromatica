@@ -44,13 +44,24 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 
 public class Test {
+	
+	//Declara las variables constantes
 	private static final String PROJECT = "all";
 	private static final String URL = "https://my-api.plantnet.org/v2/identify/" + PROJECT + "?lang=es&include-related-images=true&api-key=2b10oHEhibsbL9uFqTzhqVFDGe";
 
+	
+	/**
+	 * Se encarga de escribir el header en el fixero result.html
+	 * si no es este el caso dara un error
+	 * @param content el contenido que se escrivira en el documento result.html
+	 */
+	
 	private static void saveContentHtml(String content)
 	{
+		
 		try
 		{
+			
 			FileWriter resultWrite = new FileWriter(new File("id_card/result.html"));
 			resultWrite.write(content);
 			resultWrite.close();
@@ -61,10 +72,17 @@ public class Test {
 			System.exit(-1);
 		}
 	}
-
+	
+	
+	/**
+	 * Funcion que lee el contenido de un archivo HTML y lo devuelve como una cadena de texto.
+	 * @param file Es el arxivo que hay que leer
+	 * @return Retorna el contenido en un string
+	 */
 	private static String readContentHtml(String file) 
 	{
 		StringBuilder content = new StringBuilder();
+		
 		try 
 		{
 			BufferedReader reader = new BufferedReader(new FileReader(new File(file)));
@@ -81,6 +99,8 @@ public class Test {
 		}
 		return content.toString();
 	}
+	
+	
 
 	public static void main(String[] args) 
 	{
@@ -96,6 +116,7 @@ public class Test {
 		selectorArxius.setCurrentDirectory(new File(currentDirectory));
 
 		resultat = selectorArxius.showOpenDialog(null);
+		
 		if (resultat == JFileChooser.APPROVE_OPTION) 
 		{
 			// Creem l'objecte entity builder que ens permet gestionar la
@@ -134,12 +155,6 @@ public class Test {
 				.addTextBody("organs", resposta);
 			}
 
-
-
-
-
-
-
 			// Donem l'ordre de construir el contingut (entity) de la petició.
 			HttpEntity entity = builder.build();
 			// Continuem amb la petició com a l'exemple de Pl@ntNet.
@@ -147,6 +162,7 @@ public class Test {
 			request.setEntity(entity);
 			HttpClient client = HttpClientBuilder.create().build();
 			HttpResponse response;
+			
 			try
 			{
 				response = client.execute(request);
@@ -162,8 +178,8 @@ public class Test {
 				// Fem la desserialització de la resposta obtinguda del servidor
 				// (conversió de JSON a objecte tipus Resposta de Java).
 				RespostaPlantNet r = new Gson().fromJson(jsonString, RespostaPlantNet.class);
-				// Mostrem el valor de l'atribut bestMatch per consola.
-
+								
+				// Mostrem els diferents valors que en dona el Json en una forma mes resumida
 				System.out.print("\n\n Language de la resposta: ");
 				System.out.println(r.getLanguage());
 				System.out.print(" Best Match de la resposta: ");
@@ -175,7 +191,7 @@ public class Test {
 				System.out.print(" Remaining Identification de la resposta: ");
 				System.out.println(r.getRemainingIdentificationRequests());
 				System.out.println("");
-
+				
 				// Comprobamos si el directorio donde vamos a guardar las imagenes existe, en caso de que no, lo creamos
 				Path idCardPath = Paths.get("id_card");
 				if (!Files.exists(idCardPath, LinkOption.NOFOLLOW_LINKS))
@@ -190,7 +206,8 @@ public class Test {
 						System.exit(-1);
 					}
 				}
-
+				
+				// Lo mismo que el idCardPath pero con la carpeta image
 				Path imagesPath = Paths.get("id_card/images");
 				if (!Files.exists(imagesPath, LinkOption.NOFOLLOW_LINKS))
 				{
@@ -205,6 +222,7 @@ public class Test {
 					}
 				}
 
+				// Lo mismo que el idCardPath pero con el arxivo result pero si existe ya el arxivo el anterior se borra y se crea uno nuevo
 				File resultFile = new File("id_card/result.html");
 				if (!resultFile.exists())
 				{
@@ -243,17 +261,21 @@ public class Test {
 					// resultats que conté la resposta que hem rebut.
 					for (Resultat res: r.getResults()) 
 					{	
-						if (!(res.getScore() >= 0.05))
-							continue;
-
+						if (res.getScore() < 0.05) {
+                            if(countResImg == 1) {
+                                System.out.println("Cap resultat supera el 5%.");
+                            }
+                            break;
+						}
+						
+						// A partir de aqui montamos el result.html
 						resultContent += readContentHtml("templates/result_template.html");
 						resultContent = resultContent.replace("%%scientificName%%", res.getSpecies().getScientificName());
 						resultContent = resultContent.replace("%%score%%", String.format("%.2f%%", res.getScore() * 100));
 
-						System.out.printf("\n %s (%.2f%%)%n",
-								res.getSpecies().getScientificName(),
-								res.getScore() * 100);
+						System.out.printf("\n %s (%.2f%%)%n", res.getSpecies().getScientificName(), res.getScore() * 100);
 
+						// Comprovamos si tiene uno o mas nombres comunes a la vez que los colocamos dentro del arxivo
 						if (res.getSpecies().getCommonNames() != null && !res.getSpecies().getCommonNames().isEmpty())
 						{
 							System.out.println(" Common names: ");
@@ -270,7 +292,8 @@ public class Test {
 						{
 							resultContent = resultContent.replace("%%commonNames%%", "");
 						}
-
+						
+						// Lo mismo que los nombres comunes pero con las imagenes pero quedandose con las de resolucion media
 						if (res.getImages() != null && !res.getImages().isEmpty())
 						{
 							StringBuilder imagesHtml = new StringBuilder();
@@ -347,7 +370,6 @@ public class Test {
 
 					} catch (SQLException sqle) {
 						System.out.println("Error establint la connexió: " + sqle.getMessage());
-						sqle.printStackTrace();
 					}
 				}
 				else
